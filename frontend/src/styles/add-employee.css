@@ -1,0 +1,140 @@
+/* ===========================
+   ADD EMPLOYEE MODAL STYLES
+   =========================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    z-index: 999;
+}
+
+.modal {
+    background: var(--bg-card);
+    padding: 0;
+    /* Let header/body/footer handle padding */
+    width: 420px;
+    /* Smaller elegant width */
+    max-width: 90vw;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    color: var(--text-body);
+    animation: modalFade 0.2s ease-out;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-card);
+}
+
+.modal-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    background: var(--bg-hover);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+@keyframes modalFade {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+}
+
+/* Row wrapper for side-by-side inputs */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Single column row */
+.form-row>label:only-child {
+    grid-column: span 2;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+input,
+select {
+    margin-top: 6px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-body);
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.readonly-input {
+    background: var(--bg-hover) !important;
+    color: var(--text-muted) !important;
+    cursor: default;
+    border-color: transparent !important;
+}
+
+.error {
+    color: var(--accent-danger);
+    margin-top: 8px;
+}
+
+.error {
+    color: #ff6b6b;
+    margin-top: 8px;
+}
+
+/* Readonly input for auto-generated employee code */
+.readonly-input {
+    background: #0d1117 !important;
+    color: #8b949e !important;
+    cursor: not-allowed;
+    border-color: #21262d !important;
+}

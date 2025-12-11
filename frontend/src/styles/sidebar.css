@@ -1,0 +1,516 @@
+/* ===========================
+   DYNAMIC SIDEBAR STYLES
+   =========================== */
+
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    /* Themed */
+    color: var(--text-muted);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    border-right: 1px solid var(--sidebar-border);
+    /* Themed */
+    flex-shrink: 0;
+    transition: width 0.3s ease;
+    z-index: 50;
+    /* Ensure sidebar stays on top */
+    position: relative;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+    /* Stronger shadow for depth */
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-dot {
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+}
+
+.sidebar-company {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+.sidebar-user {
+    padding: 16px 20px;
+    background: var(--bg-hover);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-user-hi {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sidebar-user-email {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.sidebar-user-role {
+    margin-top: 8px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+    color: #fff;
+    border-radius: 10px;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 0;
+    overflow-y: auto;
+}
+
+.nav-group {
+    margin-bottom: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    gap: 10px;
+}
+
+.nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.nav-item-active {
+    background: rgba(0, 212, 255, 0.15) !important;
+    color: #00d4ff !important;
+    border-left: 3px solid #00d4ff;
+}
+
+/* Fix contrast for active item in light mode if needed, 
+   but blue usually works well on white too. 
+   Maybe darken it slightly for light mode? Kept same for now. */
+
+.nav-parent {
+    font-weight: 500;
+}
+
+.nav-parent.expanded {
+    background: var(--bg-hover);
+}
+
+.nav-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.nav-label {
+    flex: 1;
+}
+
+.nav-arrow {
+    font-size: 10px;
+    opacity: 0.5;
+}
+
+.nav-children {
+    background: rgba(0, 0, 0, 0.1);
+    /* Subtle darkening for structure */
+}
+
+.nav-child {
+    padding-left: 50px;
+    font-size: 13px;
+}
+
+.nav-child .nav-icon {
+    font-size: 12px;
+}
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-theme-toggle {
+    width: 100%;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-body);
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-theme-toggle:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-logout {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-logout:hover {
+    background: linear-gradient(135deg, #ff5555 0%, #dd0000 100%);
+    transform: translateY(-1px);
+}
+
+.sidebar-footnote {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--text-placeholder);
+    text-align: center;
+}
+
+/* ===========================
+   LOGOUT MODAL STYLES
+   =========================== */
+
+.logout-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.logout-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    width: 400px;
+    max-width: 90%;
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.logout-icon-wrapper {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: bounce 1s infinite;
+}
+
+.logout-modal h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin: 0 0 12px;
+    font-weight: 700;
+}
+
+.logout-modal p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin: 0 0 32px;
+    line-height: 1.5;
+}
+
+.logout-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-body);
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: var(--bg-hover);
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+}
+
+.btn-confirm-logout {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-confirm-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* ===========================
+   NOTIFICATION BADGE
+   =========================== */
+
+.nav-badge {
+    background: #ef4444;
+    /* Red 500 */
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 999px;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--sidebar-bg);
+    /* Use var to blend with sidebar */
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-dot {
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+}
+
+.sidebar-company {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+.sidebar-user {
+    padding: 16px 20px;
+    background: var(--bg-hover);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-user-hi {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sidebar-user-email {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.sidebar-user-role {
+    margin-top: 8px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+    color: #fff;
+    border-radius: 10px;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 0;
+    overflow-y: auto;
+}
+
+.nav-group {
+    margin-bottom: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: var(--text-body);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    gap: 10px;
+}
+
+.nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.nav-item-active {
+    background: rgba(0, 212, 255, 0.15) !important;
+    color: #00d4ff !important;
+    border-left: 3px solid #00d4ff;
+}
+
+.nav-parent {
+    font-weight: 500;
+}
+
+.nav-parent.expanded {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.nav-label {
+    flex: 1;
+}
+
+.nav-arrow {
+    font-size: 10px;
+    opacity: 0.5;
+}
+
+.nav-children {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.nav-child {
+    padding-left: 50px;
+    font-size: 13px;
+}
+
+.nav-child .nav-icon {
+    font-size: 12px;
+}
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+}

@@ -1,0 +1,96 @@
+/* === LAYOUT DASHBOARD UTAMA === */
+
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+    background: #020617;
+    /* tidak ada border putih lagi */
+}
+
+/* SIDEBAR */
+.app-sidebar {
+    width: 240px;
+    background: #020617;
+    color: #e5e7eb;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.app-sidebar-title {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.app-sidebar-hello {
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+/* NAV */
+.app-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.app-nav-button {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #e5e7eb;
+    text-align: left;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.app-nav-button.active,
+.app-nav-button:hover {
+    background: rgba(248, 250, 252, 0.08);
+}
+
+/* AREA KONTEN */
+
+.app-main {
+    flex: 1;
+    background: #f3f4f6;
+    /* abu-abu terang, full tanpa border putih */
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER DASHBOARD */
+
+.app-main-header {
+    margin-bottom: 16px;
+}
+
+.app-main-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+}
+
+.app-main-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+/* GRID CARD RINGKASAN */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+/* Tombol logout di bawah sidebar */
+.app-sidebar-footer {
+    margin-top: auto;
+}

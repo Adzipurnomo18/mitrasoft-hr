@@ -1,0 +1,278 @@
+/* ===========================
+   PROFILE PAGE STYLES - DYNAMIC THEME
+   =========================== */
+
+.profile-container {
+    max-width: 1000px;
+}
+
+/* Header card */
+.profile-header-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: var(--bg-card);
+    /* Themed */
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-initials {
+    font-size: 42px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.profile-header-info {
+    flex: 1;
+}
+
+.profile-header-info h2 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+.profile-header-info .job-title {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+.profile-header-info .dept-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.profile-header-info .dept-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(0, 212, 255, 0.15);
+    color: #38bdf8;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.profile-header-info .emp-code {
+    font-family: monospace;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.profile-actions {
+    flex-shrink: 0;
+}
+
+/* Details grid */
+.profile-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .profile-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-header-card {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+.profile-card {
+    padding: 24px;
+    border-radius: 24px;
+    background: var(--bg-card);
+    /* Themed */
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
+}
+
+.profile-card h3 {
+    margin: 0 0 20px;
+    font-size: 16px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.info-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin: 0;
+}
+
+.info-list div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-list div.full-width {
+    grid-column: 1 / -1;
+}
+
+.info-list dt {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.info-list dd {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text-body);
+    font-weight: 500;
+}
+
+.info-list .mono {
+    font-family: monospace;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.status-badge.inactive {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Edit Form */
+.profile-form {
+    padding: 24px;
+    background: var(--bg-card);
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.profile-form h3 {
+    margin: 0 0 24px;
+    font-size: 18px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-grid label span {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-body);
+    background: var(--bg-input);
+    transition: border-color 0.15s ease;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    background: var(--bg-input);
+}
+
+.form-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-secondary {
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-body);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    border-color: var(--text-primary);
+}
+
+.loading-state,
+.error-state {
+    padding: 40px;
+    text-align: center;
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+.error-state {
+    color: var(--accent-danger);
+}

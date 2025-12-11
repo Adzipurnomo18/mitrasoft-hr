@@ -1,0 +1,165 @@
+/* ========== General Reset & Theme ========== */
+
+:root {
+    /* --- COLOR PALETTE DEFINITION --- */
+
+    /* DEFAULT DARK THEME (Base) */
+    --bg-main: #020617;
+    /* Very dark background for app */
+    --bg-main-grad: radial-gradient(circle at top, #0b1120 0, #020617 45%, #000 100%);
+    --bg-panel: #0d1117;
+    /* App main panel background */
+    --bg-card: #0f172a;
+    /* Card background */
+    --bg-input: #020617;
+    /* Input field background */
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    /* Generic hover */
+
+    --text-primary: #f9fafb;
+    /* Main headings */
+    --text-body: #e5e7eb;
+    /* Normal text */
+    --text-muted: #9ca3af;
+    /* Muted/Labels */
+    --text-placeholder: #64748b;
+
+    --border-color: rgba(55, 65, 81, 0.5);
+    --border-focus: #3b82f6;
+
+    --sidebar-bg: #0f172a;
+    /* Sidebar background */
+    --sidebar-border: rgba(31, 41, 55, 0.9);
+
+    --accent-primary: #3b82f6;
+    /* Blue */
+    --accent-danger: #ef4444;
+    /* Red */
+    --accent-success: #22c55e;
+    /* Green */
+
+    --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.12);
+    --glass-blur: blur(10px);
+}
+
+[data-theme="light"] {
+    /* LIGHT THEME OVERRIDES - FUTURE PREMIUM */
+    --bg-main: #f0f4f8;
+    /* Soft cool gray/blue base */
+    --bg-main-grad: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+    --bg-panel: rgba(255, 255, 255, 0.6);
+    /* Glassy panel */
+    --bg-card: rgba(255, 255, 255, 0.75);
+    /* Glassy card */
+    --bg-input: rgba(255, 255, 255, 0.9);
+    /* Almost opaque input */
+    --bg-hover: rgba(59, 130, 246, 0.08);
+    /* Subtle blue hover tint */
+
+    --text-primary: #0f172a;
+    /* Deep slate for headings */
+    --text-body: #334155;
+    /* Slate 700 for body */
+    --text-muted: #64748b;
+    /* Slate 500 */
+    --text-placeholder: #94a3b8;
+
+    --border-color: rgba(148, 163, 184, 0.4);
+    /* Soft slate border */
+    --border-focus: #3b82f6;
+
+    --sidebar-bg: rgba(255, 255, 255, 0.85);
+    /* Glassy sidebar */
+    --sidebar-border: rgba(148, 163, 184, 0.3);
+
+    /* Premium Shadows with Color Tint */
+    --shadow-card:
+        0 4px 6px -1px rgba(59, 130, 246, 0.05),
+        0 10px 15px -3px rgba(59, 130, 246, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+
+    --glass-blur: blur(12px);
+    /* Enable blur for light mode too */
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    /* Smooth toggle transition */
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+        'Segoe UI', sans-serif;
+    background: var(--bg-main-grad);
+    color: var(--text-body);
+}
+
+.app-root {
+    min-height: 100vh;
+}
+
+/* Scrollbar halus - Themed */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 999px;
+}
+
+/* ========== App Layout ========== */
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-panel);
+}
+
+/* Coming Soon placeholder */
+.coming-soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+}
+
+.coming-soon h1 {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.coming-soon p {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.coming-soon .muted {
+    margin-top: 8px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+}
