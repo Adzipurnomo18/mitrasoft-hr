@@ -89,6 +89,7 @@ func (r *Repository) FindByEmail(email string) (*User, error) {
 		SELECT ` + userSelectColumns + `
 		FROM users
 		WHERE email = $1
+		ORDER BY id DESC
 		LIMIT 1
 	`
 	row := r.db.QueryRow(q, strings.ToLower(strings.TrimSpace(email)))
@@ -215,8 +216,9 @@ func (r *Repository) UpdateEmployee(ctx context.Context, u *User) (*User, error)
 			job_title     = $5,
 			status        = $6,
 			department    = $7,
-			roles         = $8
-		WHERE id = $9
+			roles         = $8,
+			password_hash = COALESCE(NULLIF($9, ''), password_hash)
+		WHERE id = $10
 		RETURNING ` + userSelectColumns + `
 	`
 	row := r.db.QueryRowContext(
@@ -230,15 +232,66 @@ func (r *Repository) UpdateEmployee(ctx context.Context, u *User) (*User, error)
 		u.Status,
 		u.Department,
 		pq.Array(u.Roles),
+		u.PasswordHash,
 		u.ID,
 	)
 	return scanUser(row)
 }
 
 func (r *Repository) DeleteEmployee(ctx context.Context, id int64) error {
+	// Soft delete: mark as INACTIVE to avoid FK constraint issues
+	q := `UPDATE users SET status = 'INACTIVE' WHERE id = $1`
+	res, err := r.db.ExecContext(ctx, q, id)
+	if err != nil {
+		return err
+	}
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+// DeleteEmployeeByCode performs soft delete by employee code
+func (r *Repository) DeleteEmployeeByCode(ctx context.Context, code string) error {
+	q := `UPDATE users SET status = 'INACTIVE' WHERE employee_code = $1`
+	res, err := r.db.ExecContext(ctx, q, code)
+	if err != nil {
+		return err
+	}
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+// HardDeleteEmployee permanently deletes a user by id
+func (r *Repository) HardDeleteEmployee(ctx context.Context, id int64) error {
 	q := `DELETE FROM users WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, q, id)
-	return err
+	res, err := r.db.ExecContext(ctx, q, id)
+	if err != nil {
+		return err
+	}
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+// HardDeleteEmployeeByCode permanently deletes a user by employee code
+func (r *Repository) HardDeleteEmployeeByCode(ctx context.Context, code string) error {
+	q := `DELETE FROM users WHERE employee_code = $1`
+	res, err := r.db.ExecContext(ctx, q, code)
+	if err != nil {
+		return err
+	}
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
 }
 
 // GetNextEmployeeCode generates the next employee code for a department.

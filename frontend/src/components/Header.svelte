@@ -1,5 +1,5 @@
 <script>
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
     import { theme, user, menus, permissions, currentPage } from "../stores.js"; // Import stores
     import { API_BASE } from "../api.js";
 
@@ -42,6 +42,107 @@
             dispatch("logout"); // Optional, if parent wants to know
         }
     }
+
+    // Attendance actions
+    let checking = false;
+    let attInfo = { checkin_time: "", checkout_time: "", status: "" };
+    function fmtTime(s) {
+        if (!s) return "-";
+        const d = new Date(s);
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        return `${hh}:${mm}`;
+    }
+    function attText() {
+        const ci = fmtTime(attInfo.checkin_time);
+        const co = fmtTime(attInfo.checkout_time);
+        const d = new Date();
+        const dateStr = d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+        return `${dateStr} · CI ${ci} · CO ${co}`;
+    }
+    async function loadToday() {
+        try {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, "0");
+            const d = String(now.getDate()).padStart(2, "0");
+            const from = `${y}-${m}-${d}`;
+            const toD = new Date(y, now.getMonth(), now.getDate() + 1);
+            const to = `${toD.getFullYear()}-${String(toD.getMonth() + 1).padStart(2, "0")}-${String(toD.getDate()).padStart(2, "0")}`;
+            const res = await fetch(`${API_BASE}/api/attendance/list?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, {
+                credentials: "include",
+            });
+            if (res.ok) {
+                const items = await res.json();
+                if (Array.isArray(items) && items.length > 0) {
+                    const today = items.find((r) => r.date && new Date(r.date).toDateString() === new Date(from).toDateString()) || items[0];
+                    attInfo = {
+                        checkin_time: today.checkin_time || "",
+                        checkout_time: today.checkout_time || "",
+                        status: today.status || "",
+                    };
+                }
+            }
+        } catch (_) {}
+    }
+    onMount(() => {
+        loadToday();
+    });
+    async function checkin() {
+        if (checking) return;
+        checking = true;
+        try {
+            const res = await fetch(`${API_BASE}/api/attendance/checkin`, {
+                method: "POST",
+                credentials: "include",
+            });
+            if (!res.ok) {
+                const msg = await res.text();
+                throw new Error(msg || "Check-in failed");
+            }
+            const rec = await res.json();
+            attInfo = {
+                checkin_time: rec.checkin_time || "",
+                checkout_time: rec.checkout_time || "",
+                status: rec.status || "",
+            };
+            alert("Check-in berhasil");
+            // optional: refresh metrics via custom event
+            dispatch("refresh");
+        } catch (e) {
+            console.error(e);
+            alert(e?.message || "Check-in failed");
+        } finally {
+            checking = false;
+        }
+    }
+    async function checkout() {
+        if (checking) return;
+        checking = true;
+        try {
+            const res = await fetch(`${API_BASE}/api/attendance/checkout`, {
+                method: "POST",
+                credentials: "include",
+            });
+            if (!res.ok) {
+                const msg = await res.text();
+                throw new Error(msg || "Check-out failed");
+            }
+            const rec = await res.json();
+            attInfo = {
+                checkin_time: rec.checkin_time || attInfo.checkin_time || "",
+                checkout_time: rec.checkout_time || "",
+                status: rec.status || "",
+            };
+            alert("Check-out berhasil");
+            dispatch("refresh");
+        } catch (e) {
+            console.error(e);
+            alert(e?.message || "Check-out failed");
+        } finally {
+            checking = false;
+        }
+    }
 </script>
 
 <header class="main-header">
@@ -51,6 +152,13 @@
     </div>
 
     <div class="header-actions">
+        <!-- Attendance -->
+        <div class="attendance-actions">
+            <button class="btn-icon" on:click={checkin} title="Check-in" disabled={checking}>🟢</button>
+            <button class="btn-icon" on:click={checkout} title="Check-out" disabled={checking}>🔴</button>
+            <span class="att-time" id="att-time">{attText()}</span>
+        </div>
+
         <!-- Secure Session Pill -->
         <div class="header-pill">
             <span class="pill-dot"></span>
@@ -139,6 +247,16 @@
         display: flex;
         align-items: center;
         gap: 12px;
+    }
+    .attendance-actions {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .att-time {
+        margin-left: 4px;
+        font-size: 12px;
+        color: var(--text-muted);
     }
 
     /* Pill Styles */

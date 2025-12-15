@@ -74,17 +74,49 @@
     }
 
     async function handleDeleteEmployee(id) {
-        if (!confirm("Delete this employee?")) return;
+        const mode = prompt("Ketik 'hard' untuk delete permanen, atau Enter untuk inactive:");
+        if (mode === null) return;
 
         try {
-            const res = await fetch(`${API_BASE}/api/employees/${id}`, {
-                method: "DELETE",
-                credentials: "include",
-            });
+            let res;
+            if ((mode || "").toLowerCase() === "hard") {
+                res = await fetch(`${API_BASE}/api/employees/${id}/hard`, {
+                    method: "DELETE",
+                    credentials: "include",
+                });
+            } else {
+                res = await fetch(`${API_BASE}/api/employees/${id}`, {
+                    method: "DELETE",
+                    credentials: "include",
+                });
+            }
 
             if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                throw new Error(body.message || "Failed to delete employee");
+                // Fallback by employee_code when ID-based delete fails
+                const emp = employees.find((e) => e.id === id);
+                if (emp?.employee_code) {
+                    if ((mode || "").toLowerCase() === "hard") {
+                        res = await fetch(
+                            `${API_BASE}/api/employees/by-code/${encodeURIComponent(emp.employee_code)}/hard`,
+                            {
+                                method: "DELETE",
+                                credentials: "include",
+                            },
+                        );
+                    } else {
+                        res = await fetch(
+                            `${API_BASE}/api/employees/by-code/${encodeURIComponent(emp.employee_code)}`,
+                            {
+                                method: "DELETE",
+                                credentials: "include",
+                            },
+                        );
+                    }
+                }
+                if (!res.ok) {
+                    const body = await res.json().catch(() => ({}));
+                    throw new Error(body.message || "Failed to delete employee");
+                }
             }
 
             await loadEmployees();
@@ -110,6 +142,18 @@
 
         try {
             saving = true;
+
+            // Auto full akses untuk dept IT/HR saat create jika belum set roles
+            if (mode === "create") {
+                const dept = (form.department || "").toUpperCase();
+                if (!Array.isArray(form.roles) || form.roles.length === 0) {
+                    if (dept === "IT" || dept === "HR") {
+                        form.roles = ["ADMIN", dept === "IT" ? "IT" : "HRD"];
+                    } else {
+                        form.roles = ["EMPLOYEE"];
+                    }
+                }
+            }
 
             const res = await fetch(url, {
                 method,
@@ -156,6 +200,7 @@
                         class="input-search"
                         placeholder="Search name, email, or code…"
                         bind:value={search}
+                        style="margin-bottom:12px;"
                     />
                     <button
                         type="button"

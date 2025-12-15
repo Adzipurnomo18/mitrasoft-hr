@@ -57,13 +57,15 @@ func (s *Service) GetByID(id int64) (*User, error) {
 // ==========================
 
 type EmployeeInput struct {
-	EmployeeCode string `json:"employee_code"`
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	Branch       string `json:"branch"`
-	JobTitle     string `json:"job_title"`
-	Status       string `json:"status"`     // ACTIVE / INACTIVE
-	Department   string `json:"department"` // ADM, IT, ACC, etc.
+	EmployeeCode string   `json:"employee_code"`
+	Name         string   `json:"name"`
+	Email        string   `json:"email"`
+	Branch       string   `json:"branch"`
+	JobTitle     string   `json:"job_title"`
+	Status       string   `json:"status"`     // ACTIVE / INACTIVE
+	Department   string   `json:"department"` // ADM, IT, ACC, etc.
+	Roles        []string `json:"roles"`
+	Password     string   `json:"password"`
 }
 
 func (in *EmployeeInput) sanitize() {
@@ -74,6 +76,10 @@ func (in *EmployeeInput) sanitize() {
 	in.JobTitle = strings.TrimSpace(in.JobTitle)
 	in.Status = strings.ToUpper(strings.TrimSpace(in.Status))
 	in.Department = strings.ToUpper(strings.TrimSpace(in.Department))
+	in.Password = strings.TrimSpace(in.Password)
+	for i := range in.Roles {
+		in.Roles[i] = strings.ToUpper(strings.TrimSpace(in.Roles[i]))
+	}
 	if in.Status == "" {
 		in.Status = "ACTIVE"
 	}
@@ -86,11 +92,27 @@ func (s *Service) ListEmployees(ctx context.Context, search string) ([]User, err
 func (s *Service) CreateEmployee(ctx context.Context, in EmployeeInput) (*User, error) {
 	in.sanitize()
 
-	// default roles untuk user baru
-	defaultRoles := []string{"EMPLOYEE"}
+	// Tentukan roles default / otomatis untuk IT & HR
+	var roles []string
+	if len(in.Roles) > 0 {
+		roles = in.Roles
+	} else {
+		switch in.Department {
+		case "IT":
+			roles = []string{"ADMIN", "IT"}
+		case "HR":
+			roles = []string{"ADMIN", "HRD"}
+		default:
+			roles = []string{"EMPLOYEE"}
+		}
+	}
 
-	// hash password default
-	hash, err := crypto.HashPassword("changeme123")
+	// Hash password: pakai input jika ada, kalau tidak default
+	pwd := in.Password
+	if pwd == "" {
+		pwd = "changeme123"
+	}
+	hash, err := crypto.HashPassword(pwd)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +125,7 @@ func (s *Service) CreateEmployee(ctx context.Context, in EmployeeInput) (*User, 
 		JobTitle:     in.JobTitle,
 		Status:       in.Status,
 		Department:   in.Department,
-		Roles:        defaultRoles,
+		Roles:        roles,
 		PasswordHash: hash,
 	}
 
@@ -128,6 +150,16 @@ func (s *Service) UpdateEmployee(ctx context.Context, id int64, in EmployeeInput
 	existing.JobTitle = in.JobTitle
 	existing.Status = in.Status
 	existing.Department = in.Department
+	if len(in.Roles) > 0 {
+		existing.Roles = in.Roles
+	}
+	if in.Password != "" {
+		hash, err := crypto.HashPassword(in.Password)
+		if err != nil {
+			return nil, err
+		}
+		existing.PasswordHash = hash
+	}
 
 	return s.repo.UpdateEmployee(ctx, existing)
 }
@@ -139,6 +171,28 @@ func (s *Service) GetNextEmployeeCode(ctx context.Context, department string) (s
 
 func (s *Service) DeleteEmployee(ctx context.Context, id int64) error {
 	return s.repo.DeleteEmployee(ctx, id)
+}
+
+func (s *Service) DeleteEmployeeByCode(ctx context.Context, code string) error {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	if code == "" {
+		return errors.New("invalid employee code")
+	}
+	return s.repo.DeleteEmployeeByCode(ctx, code)
+}
+
+// HardDeleteEmployee permanently deletes a user by id
+func (s *Service) HardDeleteEmployee(ctx context.Context, id int64) error {
+	return s.repo.HardDeleteEmployee(ctx, id)
+}
+
+// HardDeleteEmployeeByCode permanently deletes a user by employee code
+func (s *Service) HardDeleteEmployeeByCode(ctx context.Context, code string) error {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	if code == "" {
+		return errors.New("invalid employee code")
+	}
+	return s.repo.HardDeleteEmployeeByCode(ctx, code)
 }
 
 // UpdateProfile updates the current user's own profile

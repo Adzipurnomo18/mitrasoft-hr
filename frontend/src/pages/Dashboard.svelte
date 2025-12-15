@@ -18,10 +18,19 @@
       const res = await fetch(`${API_BASE}/api/announcements`, {
         credentials: "include",
       });
-      if (res.ok) {
-        announcements = await res.json();
-        // Filter only unread or recent? For now show all active
-      }
+      const serverItems = res.ok ? await res.json() : [];
+      const localItems = JSON.parse(localStorage.getItem("announcements_local") || "[]");
+      const map = new Map();
+      [...serverItems, ...localItems].forEach((a) => {
+        const id = a.id || a.local_id;
+        const prev = map.get(id);
+        if (!prev || (a.updated_at && (!prev.updated_at || a.updated_at > prev.updated_at))) {
+          map.set(id, a);
+        }
+      });
+      announcements = Array.from(map.values()).sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at),
+      );
     } catch (e) {
       console.error("Failed to load announcements", e);
     } finally {
@@ -30,6 +39,34 @@
   }
 
   import Header from "../components/Header.svelte";
+  // Simple charts without external libs: use inline SVG
+  let attData = { on_time: 0, late: 0, absent: 0 };
+  let reqData = { pending: 0, approved: 0, rejected: 0 };
+
+  async function loadMetrics() {
+    try {
+      // Attendance current month
+      const now = new Date();
+      const from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+      const to = `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, "0")}-01`;
+      const attRes = await fetch(`${API_BASE}/api/attendance/summary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, { credentials: "include" });
+      if (attRes.ok) {
+        const s = await attRes.json();
+        attData = { on_time: s.on_time || 0, late: s.late || 0, absent: s.absent || 0 };
+      }
+      // Requests summary current month
+      const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const reqRes = await fetch(`${API_BASE}/api/requests/summary/my?month=${encodeURIComponent(month)}`, { credentials: "include" });
+      if (reqRes.ok) {
+        const r = await reqRes.json();
+        reqData = { pending: r.pending || 0, approved: r.approved || 0, rejected: r.rejected || 0 };
+      }
+    } catch (e) {}
+  }
+  onMount(() => {
+    loadAnnouncements();
+    loadMetrics();
+  });
 
   // ... (currentUser sub) ...
   // ... (announcements logic) ...
@@ -43,7 +80,7 @@
 </script>
 
 <div class="page-wrapper">
-  <Header>
+  <Header on:refresh={loadMetrics}>
     <div>
       <h1>Dashboard</h1>
       <p>Have a good day, {displayName()}!</p>
@@ -71,17 +108,27 @@
 
           <article class="card">
             <h2>Attendance</h2>
-            <p class="muted">
-              Summary kehadiran akan ditampilkan di sini. Grafik on-time, late,
-              dan absence.
-            </p>
+            <div class="chart">
+              {#key attData}
+              <svg viewBox="0 0 300 140" width="100%" height="140">
+                <!-- Bar chart -->
+                {#each [attData.on_time, attData.late, attData.absent] as v, i}
+                  {@const x = 30 + i * 90}
+                  {@const h = Math.min(120, (Number(v) || 0) * 8)}
+                  <rect x={x} y={130 - h} width="40" height={h} rx="6" fill={i===0 ? "#22c55e" : i===1 ? "#f59e0b" : "#ef4444"} />
+                  <text x={x + 20} y="135" text-anchor="middle" font-size="12" fill="#9ca3af">
+                    {i===0 ? "On-time" : i===1 ? "Late" : "Absent"}
+                  </text>
+                  <text x={x + 20} y={130 - h - 6} text-anchor="middle" font-size="12" fill="#cbd5e1">{v}</text>
+                {/each}
+              </svg>
+              {/key}
+            </div>
           </article>
 
           <article class="card">
             <h2>Leave Balance</h2>
-            <p class="muted">
-              Annual leave, sick leave, dan sisa cuti akan ditampilkan di sini.
-            </p>
+            <p class="muted">Quota tahunan: 12 hari. Sisa cuti akan dihitung dari request APPROVED.</p>
           </article>
         </section>
       </div>
@@ -113,9 +160,21 @@
 
         <article class="card">
           <h2>My Requests</h2>
-          <p class="muted">
-            Status pengajuan cuti, lembur, dan request lainnya.
-          </p>
+          <div class="chart">
+            {#key reqData}
+            <svg viewBox="0 0 300 140" width="100%" height="140">
+              {#each [reqData.pending, reqData.approved, reqData.rejected] as v, i}
+                {@const x = 30 + i * 90}
+                {@const h = Math.min(120, (Number(v) || 0) * 8)}
+                <rect x={x} y={130 - h} width="40" height={h} rx="6" fill={i===0 ? "#60a5fa" : i===1 ? "#22c55e" : "#ef4444"} />
+                <text x={x + 20} y="135" text-anchor="middle" font-size="12" fill="#9ca3af">
+                  {i===0 ? "Pending" : i===1 ? "Approved" : "Rejected"}
+                </text>
+                <text x={x + 20} y={130 - h - 6} text-anchor="middle" font-size="12" fill="#cbd5e1">{v}</text>
+              {/each}
+            </svg>
+            {/key}
+          </div>
         </article>
       </aside>
     </div>

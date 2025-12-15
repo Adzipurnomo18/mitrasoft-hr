@@ -148,6 +148,12 @@ func (r *Repository) MarkAnnouncementRead(ctx context.Context, userID, announcem
 	return err
 }
 
+// DeleteAnnouncement removes an announcement by id (soft: set is_active=false) for audit
+func (r *Repository) DeleteAnnouncement(ctx context.Context, id int64) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE announcements SET is_active = FALSE WHERE id = $1", id)
+	return err
+}
+
 // DeleteMessage deletes a message from the inbox if the user is the receiver
 func (r *Repository) DeleteMessage(ctx context.Context, messageID int64, userID int64) error {
 	q := `DELETE FROM messages WHERE id = $1 AND receiver_id = $2`

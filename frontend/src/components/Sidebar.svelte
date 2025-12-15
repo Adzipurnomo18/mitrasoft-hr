@@ -21,9 +21,16 @@
     user.subscribe((value) => (currentUser = value));
 
     $: {
-        const selfSvc = (menuTree || []).find((m) => m.code === "SELF_SERVICE");
-        const requestsGroup = (menuTree || []).find((m) => m.code === "REQUESTS");
-        const others = (menuTree || []).filter((m) => m.code !== "REQUESTS" && m.code !== "SELF_SERVICE");
+        const upper = (s) => String(s || "").toUpperCase();
+        const isAdminMenu = (m) => {
+            const code = upper(m.code);
+            const name = upper(m.name);
+            return code === "ADMINISTRATION" || code === "ADMIN" || name === "ADMINISTRATION";
+        };
+
+        const selfSvc = (menuTree || []).find((m) => upper(m.code) === "SELF_SERVICE");
+        const requestsGroup = (menuTree || []).find((m) => upper(m.code) === "REQUESTS");
+        const others = (menuTree || []).filter((m) => upper(m.code) !== "REQUESTS" && upper(m.code) !== "SELF_SERVICE");
 
         const selfChildren = Array.isArray(selfSvc?.children) ? selfSvc.children : [];
         const reqChildren = Array.isArray(requestsGroup?.children) ? requestsGroup.children : [];
@@ -32,22 +39,56 @@
         for (const c of [...selfChildren, ...reqChildren]) {
             mergedMap.set(c.code, c);
         }
-        const myRequests = (reqChildren || []).find((c) => c.code === "MY_REQUESTS")
+        const myRequests = (reqChildren || []).find((c) => upper(c.code) === "MY_REQUESTS")
             || { code: "MY_REQUESTS", name: "My Requests", icon: "list", path: "/requests/history" };
+        const approvalsRoot = others.find((m) => upper(m.code) === "APPROVALS");
+        const approvalsChild =
+            approvalsRoot
+                ? { code: approvalsRoot.code, name: approvalsRoot.name, icon: approvalsRoot.icon, path: approvalsRoot.path }
+                : { code: "APPROVALS", name: "Approvals", icon: "check-circle", path: "/approvals" };
+
+        const privileged =
+            Array.isArray(currentUser?.roles) &&
+            (currentUser.roles
+                .map((r) => String(r).toUpperCase())
+                .some((r) => ["ADMIN", "IT", "HRD", "IT_ADMIN", "HR_ADMIN"].includes(r)));
 
         const mergedSelf = selfSvc
-            ? { ...selfSvc, children: [myRequests] }
-            : { code: "SELF_SERVICE", name: "Self-Service", icon: "briefcase", children: [myRequests] };
+            ? { ...selfSvc, children: privileged ? [myRequests, approvalsChild] : [myRequests] }
+            : { code: "SELF_SERVICE", name: "Self-Service", icon: "briefcase", children: privileged ? [myRequests, approvalsChild] : [myRequests] };
 
-        const idxEmp = others.findIndex((m) => m.code === "EMPLOYEES");
-        if (idxEmp >= 0) {
+        const adminExisting = others.find(isAdminMenu);
+        const filteredOthers = others.filter((m) => {
+            const codeUp = upper(m.code);
+            const isAdmin = isAdminMenu(m);
+            // Hapus admin hanya jika kita akan menyisipkan satu instance (privileged)
+            if (isAdmin && !privileged) return false; // non-privileged: sembunyikan admin
+            if (isAdmin && privileged) return false;  // privileged: buang instance lama, ganti satu di posisi yang benar
+            return codeUp !== "APPROVALS";
+        });
+        const adminGroup = privileged
+            ? (adminExisting
+                ? adminExisting
+                : {
+                      code: "ADMINISTRATION",
+                      name: "Administration",
+                      icon: "settings",
+                      children: [
+                          { code: "USER_MANAGEMENT", name: "User Management", icon: "user-plus", path: "/user-management" },
+                          { code: "PERMISSIONS", name: "Permissions", icon: "shield", path: "/permissions" },
+                      ],
+                  })
+            : null;
+        const idxEmployees = filteredOthers.findIndex((m) => upper(m.code) === "EMPLOYEES");
+        if (idxEmployees >= 0) {
             displayMenus = [
-                ...others.slice(0, idxEmp + 1),
+                ...filteredOthers.slice(0, idxEmployees + 1),
                 mergedSelf,
-                ...others.slice(idxEmp + 1),
+                ...(adminGroup ? [adminGroup] : []),
+                ...filteredOthers.slice(idxEmployees + 1),
             ];
         } else {
-            displayMenus = [...others, mergedSelf];
+            displayMenus = [...filteredOthers, mergedSelf, ...(adminGroup ? [adminGroup] : [])];
         }
     }
 
@@ -107,14 +148,51 @@
 
     // Navigate to a page
     function navigate(path, menuCode) {
-        if (path) {
-            currentPage.set(menuCode);
-            dispatch("navigate", path);
+        try {
+        const aliasByCode = {
+            ADMIN_USERS: "USER_MANAGEMENT",
+            USER_MGMT: "USER_MANAGEMENT",
+            ADMIN_PERMISSIONS: "PERMISSIONS",
+            PERMISSION_MGMT: "PERMISSIONS",
+            REQUESTS_HISTORY: "MY_REQUESTS",
+            APPROVALS: "APPROVALS",
+            MY_PROFILE: "MY_PROFILE",
+            DASHBOARD: "DASHBOARD",
+            EMPLOYEES: "EMPLOYEES",
+            INBOX: "INBOX",
+        };
+        const aliasByPath = {
+            "/user-management": "USER_MANAGEMENT",
+            "/permissions": "PERMISSIONS",
+            "/admin/users": "USER_MANAGEMENT",
+            "/admin/permissions": "PERMISSIONS",
+            "/requests/history": "MY_REQUESTS",
+            "/approvals": "APPROVALS",
+            "/profile": "MY_PROFILE",
+            "/dashboard": "DASHBOARD",
+            "/employees": "EMPLOYEES",
+            "/inbox": "INBOX",
+        };
 
-            // If navigating to inbox, refresh count after a short delay
-            if (menuCode === "INBOX") {
+        let target = null;
+        if (menuCode) {
+            const code = String(menuCode).toUpperCase();
+            target = aliasByCode[code] || code;
+        } else if (path) {
+            target =
+                aliasByPath[path] ||
+                path.replace(/^\//, "").replace(/\//g, "-").toUpperCase().replace("-", "_");
+        }
+
+        if (target) {
+            currentPage.set(target);
+            if (path) dispatch("navigate", path);
+            if (target === "INBOX") {
                 setTimeout(loadUnreadCount, 1000);
             }
+        }
+        } catch (e) {
+            console.error("Navigation error:", e);
         }
     }
 
@@ -162,7 +240,7 @@
             <span class="logo-dot"></span>
             <span class="logo-text">Mitrasoft-HR</span>
         </div>
-        <p class="sidebar-company">PT Mitrasoft</p>
+        <p class="sidebar-company">PT Surya Pratama Keramindo</p>
     </div>
 
     {#if currentUser}

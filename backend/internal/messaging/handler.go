@@ -109,6 +109,18 @@ func (h *Handler) MarkAnnouncementRead(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
+// DELETE /api/announcements/:id
+func (h *Handler) DeleteAnnouncement(c *fiber.Ctx) error {
+	// Permission checks could be added (CREATE_ANNOUNCEMENTS)
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid id")
+	}
+	if err := h.repo.DeleteAnnouncement(c.Context(), int64(id)); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "failed to delete announcement")
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
 // DELETE /api/inbox/:id
 func (h *Handler) DeleteMessage(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(int64)

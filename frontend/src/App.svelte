@@ -7,6 +7,10 @@
   import Profile from "./pages/Profile.svelte";
   import Requests from "./pages/Requests.svelte";
   import Inbox from "./pages/Inbox.svelte";
+  import UserManagement from "./pages/UserManagement.svelte";
+  import PermissionsPage from "./pages/Permissions.svelte";
+  import Announcements from "./pages/Announcements.svelte";
+  import Reports from "./pages/Reports.svelte";
   import Sidebar from "./components/Sidebar.svelte";
   import "./styles/app.css";
 
@@ -79,7 +83,13 @@
     const path = event.detail;
     // CurrentPage is already updated by Sidebar or the caller.
     // We only need to handle side effects here if any (like history.pushState if we used it)
-    console.log("Navigating to:", path, "Current Page:", page);
+    try {
+      if (typeof path === "string") {
+        window.history.replaceState({}, "", path);
+      }
+    } catch (e) {
+      console.error("Navigation side-effect error:", e);
+    }
   }
 </script>
 
@@ -102,6 +112,14 @@
         <Profile />
       {:else if page === "inbox" || page === "INBOX"}
         <Inbox />
+      {:else if page === "USER_MANAGEMENT" || page === "user-management"}
+        <UserManagement />
+      {:else if page === "PERMISSIONS" || page === "permissions"}
+        <PermissionsPage />
+      {:else if page === "ANNOUNCEMENTS" || page === "announcements"}
+        <Announcements />
+      {:else if page === "REPORTS" || page === "reports"}
+        <Reports />
       {:else if ["SELF_SERVICE", "APPROVALS", "MY_REQUESTS", "LEAVE_REQUEST", "RESIGN_REQUEST", "OVERTIME_REQ", "EXIT_CLEARANCE", "MEDICAL_CLAIM_REQ", "ASSESSMENT"].includes(page)}
         <Requests {page} />
       {:else}

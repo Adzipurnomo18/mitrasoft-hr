@@ -17,7 +17,7 @@
     background: var(--bg-card);
     padding: 0;
     /* Let header/body/footer handle padding */
-    width: 420px;
+    width: 560px;
     /* Smaller elegant width */
     max-width: 90vw;
     border-radius: 16px;

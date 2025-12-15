@@ -68,3 +68,15 @@ func (s *Service) RejectRequest(ctx context.Context, id int64, approverID int64,
 
 	return s.repo.UpdateStatus(ctx, id, "REJECTED", approverID, &reason)
 }
+
+func (s *Service) GetProcessedBetween(ctx context.Context, from, to time.Time) ([]*Request, error) {
+	return s.repo.FindProcessedBetween(ctx, from, to)
+}
+
+func (s *Service) GetSummaryBetween(ctx context.Context, from, to time.Time) (*Summary, error) {
+	return s.repo.SummaryBetween(ctx, from, to)
+}
+
+func (s *Service) GetMySummaryBetween(ctx context.Context, userID int64, from, to time.Time) (*Summary, error) {
+	return s.repo.SummaryByUserBetween(ctx, userID, from, to)
+}

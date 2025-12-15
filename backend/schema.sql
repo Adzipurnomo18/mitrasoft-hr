@@ -232,3 +232,15 @@ CREATE TABLE IF NOT EXISTS requests (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Attendance table
+CREATE TABLE IF NOT EXISTS attendance (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    checkin_time TIMESTAMP,
+    checkout_time TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'ABSENT', -- ABSENT, ON_TIME, LATE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, date)
+);

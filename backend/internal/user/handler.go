@@ -95,6 +95,52 @@ func (h *Handler) DeleteEmployee(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// DELETE /api/employees/by-code/:code
+func (h *Handler) DeleteEmployeeByCode(c *fiber.Ctx) error {
+	code := c.Params("code")
+	if code == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid employee code")
+	}
+	if err := h.svc.DeleteEmployeeByCode(c.Context(), code); err != nil {
+		if err == ErrNotFound {
+			return fiber.NewError(fiber.StatusNotFound, "employee not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, "failed to delete employee")
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// DELETE /api/employees/:id/hard - permanent delete
+func (h *Handler) HardDeleteEmployee(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid id")
+	}
+	if err := h.svc.HardDeleteEmployee(c.Context(), id); err != nil {
+		if err == ErrNotFound {
+			return fiber.NewError(fiber.StatusNotFound, "employee not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, "failed to delete employee")
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// DELETE /api/employees/by-code/:code/hard - permanent delete by code
+func (h *Handler) HardDeleteEmployeeByCode(c *fiber.Ctx) error {
+	code := c.Params("code")
+	if code == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid employee code")
+	}
+	if err := h.svc.HardDeleteEmployeeByCode(c.Context(), code); err != nil {
+		if err == ErrNotFound {
+			return fiber.NewError(fiber.StatusNotFound, "employee not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, "failed to delete employee")
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 // GET /api/me - Get current user's profile
 func (h *Handler) GetMyProfile(c *fiber.Ctx) error {
 	userID := c.Locals("userID")

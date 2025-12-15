@@ -164,3 +164,98 @@ func (r *Repository) UpdateStatus(ctx context.Context, id int64, status string, 
 	_, err := r.db.ExecContext(ctx, q, status, approverID, rejectionReason, id)
 	return err
 }
+
+type Summary struct {
+	Total    int64 `json:"total"`
+	Pending  int64 `json:"pending"`
+	Approved int64 `json:"approved"`
+	Rejected int64 `json:"rejected"`
+}
+
+func (r *Repository) SummaryBetween(ctx context.Context, from, to time.Time) (*Summary, error) {
+	q := `
+		WITH agg AS (
+			SELECT
+				SUM(CASE WHEN status = 'PENDING'  AND created_at >= $1 AND created_at < $2 THEN 1 ELSE 0 END) AS pending,
+				SUM(CASE WHEN status = 'APPROVED' AND updated_at >= $1 AND updated_at < $2 THEN 1 ELSE 0 END) AS approved,
+				SUM(CASE WHEN status = 'REJECTED' AND updated_at >= $1 AND updated_at < $2 THEN 1 ELSE 0 END) AS rejected
+			FROM requests
+		)
+		SELECT (pending + approved + rejected) AS total, pending, approved, rejected
+		FROM agg
+	`
+	var s Summary
+	if err := r.db.QueryRowContext(ctx, q, from, to).Scan(&s.Total, &s.Pending, &s.Approved, &s.Rejected); err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+func (r *Repository) SummaryByUserBetween(ctx context.Context, userID int64, from, to time.Time) (*Summary, error) {
+	q := `
+		WITH agg AS (
+			SELECT
+				SUM(CASE WHEN status = 'PENDING'  AND user_id = $1 AND created_at >= $2 AND created_at < $3 THEN 1 ELSE 0 END) AS pending,
+				SUM(CASE WHEN status = 'APPROVED' AND user_id = $1 AND updated_at >= $2 AND updated_at < $3 THEN 1 ELSE 0 END) AS approved,
+				SUM(CASE WHEN status = 'REJECTED' AND user_id = $1 AND updated_at >= $2 AND updated_at < $3 THEN 1 ELSE 0 END) AS rejected
+			FROM requests
+		)
+		SELECT (pending + approved + rejected) AS total, pending, approved, rejected
+		FROM agg
+	`
+	var s Summary
+	if err := r.db.QueryRowContext(ctx, q, userID, from, to).Scan(&s.Total, &s.Pending, &s.Approved, &s.Rejected); err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+// FindProcessedBetween returns APPROVED/REJECTED requests in [from, to)
+func (r *Repository) FindProcessedBetween(ctx context.Context, from, to time.Time) ([]*Request, error) {
+	q := `
+		SELECT 
+			r.id, r.user_id, r.type, r.start_date, r.end_date, r.reason, r.status, 
+			r.approver_id, r.rejection_reason, r.created_at, r.updated_at,
+			u.name as user_name, COALESCE(au.name, '') as approver_name
+		FROM requests r
+		JOIN users u ON r.user_id = u.id
+		LEFT JOIN users au ON r.approver_id = au.id
+		WHERE r.status IN ('APPROVED','REJECTED')
+		  AND r.updated_at >= $1 AND r.updated_at < $2
+		ORDER BY r.updated_at DESC
+	`
+	rows, err := r.db.QueryContext(ctx, q, from, to)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var requests []*Request
+	for rows.Next() {
+		var req Request
+		var approverID sql.NullInt64
+		var rejectionReason sql.NullString
+		var approverName sql.NullString
+
+		if err := rows.Scan(
+			&req.ID, &req.UserID, &req.Type, &req.StartDate, &req.EndDate, &req.Reason, &req.Status,
+			&approverID, &rejectionReason, &req.CreatedAt, &req.UpdatedAt,
+			&req.UserName, &approverName,
+		); err != nil {
+			return nil, err
+		}
+		if approverID.Valid {
+			aid := approverID.Int64
+			req.ApproverID = &aid
+		}
+		if rejectionReason.Valid {
+			rr := rejectionReason.String
+			req.RejectionReason = &rr
+		}
+		if approverName.Valid {
+			req.ApproverName = approverName.String
+		}
+		requests = append(requests, &req)
+	}
+	return requests, nil
+}

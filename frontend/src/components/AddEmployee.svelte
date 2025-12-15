@@ -31,6 +31,7 @@
         job_title: "",
         status: "ACTIVE",
         department: "",
+        password: "",
     };
 
     let form = { ...EMPTY_FORM };
@@ -38,11 +39,16 @@
 
     // flag supaya form hanya di-init saat modal baru dibuka
     let initialized = false;
+    let lastMode = null;
+    let lastEmpId = null;
 
     // ====== SYNC FORM DENGAN PROPS SAAT MODAL DIBUKA ======
     $: {
-        if (open && !initialized) {
+        const empId = employee?.id ?? null;
+        if (open && (!initialized || mode !== lastMode || empId !== lastEmpId)) {
             initialized = true;
+            lastMode = mode;
+            lastEmpId = empId;
 
             if (mode === "edit" && employee) {
                 form = {
@@ -53,6 +59,7 @@
                     job_title: employee.job_title ?? "",
                     status: employee.status ?? "ACTIVE",
                     department: employee.department ?? "",
+                    password: "",
                 };
             } else {
                 // mode create
@@ -63,6 +70,8 @@
         // ketika modal ditutup, reset flag & form
         if (!open && initialized) {
             initialized = false;
+            lastMode = null;
+            lastEmpId = null;
             form = { ...EMPTY_FORM };
         }
     }
@@ -159,7 +168,11 @@
                 <div class="form-row">
                     <label>
                         Email
-                        <input type="email" bind:value={form.email} />
+                        <input type="email" bind:value={form.email} placeholder="" autocomplete="off" />
+                    </label>
+                    <label>
+                        Password
+                        <input type="password" bind:value={form.password} placeholder="" autocomplete="off" />
                     </label>
                 </div>
 
@@ -185,10 +198,7 @@
                     </label>
                 </div>
 
-                <p class="muted small">
-                    Untuk karyawan baru, password default di backend sekarang:
-                    <code>changeme123</code> (bisa kamu ganti mekanismenya nanti).
-                </p>
+                <!-- note dihilangkan sesuai permintaan -->
             </div>
 
             <footer class="modal-footer">
